@@ -36,6 +36,23 @@ abstract class Object{
   abstract void display();
   
   abstract PVector supportPoint(PVector d);
+  
+  abstract float leftX();
+  abstract float rightX();
+  
+  abstract PVector center();
+  
+  boolean possibleCollision(Object other){
+    if(leftX() < other.leftX()){
+      return rightX() > other.leftX();
+    }else{
+      return other.rightX() > leftX();
+    }
+  }
+  
+  void setColor(int c){
+    fillColor =c;
+  }
 }
 
 class Ball extends Object{
@@ -45,8 +62,10 @@ class Ball extends Object{
   }
   
   PVector supportPoint(PVector d){
-    PVector p = new PVector;
-    d.normalize(p).mult(radius);
+    
+    
+    PVector norm = d.copy().normalize();
+    PVector p = new PVector(position.x + radius*norm.x, position.y + radius*norm.y);
     return p;
   }
   void display(){
@@ -54,10 +73,22 @@ class Ball extends Object{
     fill(fillColor);
     ellipse(position.x, position.y, radius*2, radius*2);
   }
+  
+  float leftX(){
+    return position.x -radius;
+  }
+  
+ float rightX(){
+    return position.x + radius;
+  }
+  
+  PVector center(){
+    return new PVector(position.x, position.y);
+  }
 }
 
 class Square extends Object{
-   //<>//
+  
   Square(float x, float y, float r, int c){
     super(x,y,r,c);
   }
@@ -80,12 +111,12 @@ class Square extends Object{
   }
   
   PVector supportPoint(PVector d){
-    float vertices = squareVetices();
+    float[][] vertices = squareVertices();
     int max = 0;
-    float dot = d.dot(vertices[0][0], vertices[0][1]);
-    
+    float dot = d.dot(vertices[0][0], vertices[0][1],0);
+    float currDot;
     for(int i =1; i<4; i++){
-      currDot = d.dot(vertices[i][0], vertices[i][1]);
+      currDot = d.dot(vertices[i][0], vertices[i][1],0);
       if (currDot> dot){
         max = i;
         dot = currDot;
@@ -95,13 +126,27 @@ class Square extends Object{
     return new PVector(vertices[max][0], vertices[max][1]);
   }
   
-  float[] squareVertices(){
-    return {
-      (position.x, position.y),
-      (position.x + radius, position.y),
-      (position.x, position.y + radius),
-      (position.x + radius, position.y + radius)
-    }
+  float[][] squareVertices(){
+    float[][] v = {
+      {position.x, position.y},
+      {position.x + radius, position.y},
+      {position.x, position.y + radius},
+      {position.x + radius, position.y + radius}
+    };
+   
+   return v;
+  }
+  
+  float leftX(){
+    return position.x;
+  }
+  
+ float rightX(){
+    return position.x + radius;
+  }
+  
+  PVector center(){
+    return new PVector(position.x + radius/2, position.y + radius/2);
   }
   
   void display(){
